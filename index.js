@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const Auth = require('./routes/Auth');
 
 dotenv.config();
 
@@ -16,3 +17,5 @@ db.once('open', () => {
 });
 
 app.use(express.json());
+
+app.use('/', Auth); 
