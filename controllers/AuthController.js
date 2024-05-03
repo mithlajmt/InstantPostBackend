@@ -1,6 +1,8 @@
 const User = require('./../models/User');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 const passwordRegex = /^(?=.*[A-Z]).{8,}$/;
 
@@ -8,11 +10,9 @@ const registerUser = async (req, res) => {
   const { userName, password, confirmPassword } = req.body;
 
   try {
-
-
-    const existingUser  = await User.findOne({userName});
+    const existingUser = await User.findOne({ userName });
     if (existingUser) {
-        return res.status(400).json({ success: false, error: 'user Already Exists' });
+      return res.status(400).json({ success: false, error: 'User already exists' });
     }
     if (password !== confirmPassword) {
       return res.status(400).json({ success: false, error: 'Passwords do not match' });
@@ -40,53 +40,48 @@ const registerUser = async (req, res) => {
 };
 
 
-
-
-
 const login = async (req, res) => {
-  const { userName, password } = req.body;
-
-  try {
-    const existingUser = await User.findOne({ userName });
-
-    if (!existingUser) {
-      return res.status(404).json({ error: 'User not found' });
+    const { userName, password } = req.body;
+  
+    try {
+      // Find the existing user by userName
+      const existingUser = await User.findOne({ userName });
+  
+      // If user doesn't exist, return an error
+      if (!existingUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      // Compare the provided password with the stored hashed password
+      const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+  
+      // If passwords don't match, return an error
+      if (!isPasswordValid) {
+        return res.status(401).json({ error: 'Invalid password' });
+      }
+  
+      // If everything is valid, send a success response
+  
+      const token = jwt.sign({ 
+        userId: existingUser._id,
+        userName:existingUser.userName 
+      }, process.env.SECRETKEY, { expiresIn: '1h' });
+  
+  
+      res.status(200).json({
+        success:true,
+         message: 'Login successful',
+         token: token
+        });
+  
+  
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
-
-
-    const token = jwt.sign({ 
-      userId: existingUser._id,
-      userName:existingUser.userName 
-    }, process.env.SECRETKEY, { expiresIn: '1h' });
-
-    
-    res.status(200).json({
-      success:true,
-       message: 'Login successful',
-       token: token
-      });
-
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
-
-
-
-
-
-
+  };
 
 module.exports = { 
-    registerUser,
-    login
-  };
+  registerUser,
+  login
+};
