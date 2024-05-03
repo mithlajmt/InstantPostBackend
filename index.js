@@ -7,6 +7,7 @@ const passport = require('passport');
 const passportJWT = require('passport-jwt');
 const localStrategy = require('passport-local').Strategy;
 const post = require('./routes/post')
+const dashboard = require('./routes/dashboard')
 dotenv.config();
 
 
@@ -37,4 +38,5 @@ passport.use(new JWTStrategy({
 
 app.use('/', Auth); 
 app.use('/post',post)
+app.use('/dashboard',dashboard)
 
