@@ -13,9 +13,9 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    active: {
-        type: Boolean,
-        default: true
+    status: {
+        type: ['active','inActive'],
+        default: 'active'
     },
     latitude:{
         type:String,
