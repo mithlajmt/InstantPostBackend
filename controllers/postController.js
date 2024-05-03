@@ -85,6 +85,31 @@ const deletePost = async (req, res) => {
     }
 };
 
+const getPostByLatitude = async (req, res) => {
+    try {
+        const { latitude, longitude } = req.body;
+
+        const posts = await Post.find({
+            latitude,
+            longitude
+        });
+
+        if (posts.length === 0) {
+            return res.status(404).json({ success: false, error: 'No posts found for the provided coordinates' });
+        }
+
+        res.status(200).json({ success: true, posts });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+};
+
+module.exports = {
+    getPostByLatitude
+};
+
+
 
 
 
@@ -92,5 +117,7 @@ const deletePost = async (req, res) => {
 module.exports = {
     savePost,
     editPost,
-    deletePost
+    deletePost,
+    getPostByLatitude
+
 };
